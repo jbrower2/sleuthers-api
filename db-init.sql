@@ -39,11 +39,11 @@ CREATE TYPE game_stage AS ENUM ('PLAYING', 'GUESSING', 'FINISHED');
 -- app user
 CREATE TABLE app_user
 (
-    id             uuid         NOT NULL  DEFAULT uuid_generate_v4()  PRIMARY KEY,
-    username       text         NOT NULL                              UNIQUE,
-    password_hash  text         NOT NULL,
-    created        timestamptz  NOT NULL  DEFAULT now(),
-    modified       timestamptz  NOT NULL  DEFAULT now()
+	id             uuid         NOT NULL  DEFAULT uuid_generate_v4()  PRIMARY KEY,
+	username       text         NOT NULL                              UNIQUE,
+	password_hash  text         NOT NULL,
+	created        timestamptz  NOT NULL  DEFAULT now(),
+	modified       timestamptz  NOT NULL  DEFAULT now()
 );
 
 CREATE TRIGGER set_modified
@@ -54,11 +54,11 @@ EXECUTE PROCEDURE trigger_set_modified();
 -- collectible tokens
 CREATE TABLE token
 (
-    id         uuid         NOT NULL  DEFAULT uuid_generate_v4()  PRIMARY KEY,
-    name       text         NOT NULL,
-    image_url  text         NOT NULL,
-    created    timestamptz  NOT NULL  DEFAULT now(),
-    modified   timestamptz  NOT NULL  DEFAULT now()
+	id         uuid         NOT NULL  DEFAULT uuid_generate_v4()  PRIMARY KEY,
+	name       text         NOT NULL,
+	image_url  text         NOT NULL,
+	created    timestamptz  NOT NULL  DEFAULT now(),
+	modified   timestamptz  NOT NULL  DEFAULT now()
 );
 
 CREATE TRIGGER set_modified
@@ -73,8 +73,8 @@ CREATE TABLE character
 	name       text         NOT NULL,
 	bg_color   text         NOT NULL,
 	image_url  text         NOT NULL,
-    created    timestamptz  NOT NULL  DEFAULT now(),
-    modified   timestamptz  NOT NULL  DEFAULT now()
+	created    timestamptz  NOT NULL  DEFAULT now(),
+	modified   timestamptz  NOT NULL  DEFAULT now()
 );
 
 CREATE TRIGGER set_modified
@@ -85,12 +85,12 @@ EXECUTE PROCEDURE trigger_set_modified();
 -- instances of a game
 CREATE TABLE game
 (
-    id        uuid         NOT NULL  DEFAULT uuid_generate_v4()  PRIMARY KEY,
-    owner     uuid         NOT NULL                              REFERENCES app_user (id),
-    name      text         NOT NULL,
-    stage     game_stage   NOT NULL  DEFAULT 'PLAYING',
-    created   timestamptz  NOT NULL  DEFAULT now(),
-    modified  timestamptz  NOT NULL  DEFAULT now()
+	id        uuid         NOT NULL  DEFAULT uuid_generate_v4()  PRIMARY KEY,
+	owner     uuid         NOT NULL                              REFERENCES app_user (id),
+	name      text         NOT NULL,
+	stage     game_stage   NOT NULL  DEFAULT 'PLAYING',
+	created   timestamptz  NOT NULL  DEFAULT now(),
+	modified  timestamptz  NOT NULL  DEFAULT now()
 );
 
 CREATE TRIGGER set_modified
@@ -101,129 +101,129 @@ EXECUTE PROCEDURE trigger_set_modified();
 -- each user in a game, and the user state
 CREATE TABLE game_user
 (
-    game        uuid      NOT NULL  REFERENCES game (id),
-    app_user    uuid      NOT NULL  REFERENCES app_user (id),
+	game        uuid      NOT NULL  REFERENCES game (id),
+	app_user    uuid      NOT NULL  REFERENCES app_user (id),
 	character   uuid      NOT NULL  REFERENCES character (id),
-    game_order  smallint  NOT NULL,
-    PRIMARY KEY (game, app_user)
+	game_order  smallint  NOT NULL,
+	PRIMARY KEY (game, app_user)
 );
 
 
 -- each token type in a game, and the remaining count
 CREATE TABLE game_token
 (
-    game   uuid      NOT NULL  REFERENCES game (id),
-    token  uuid      NOT NULL  REFERENCES token (id),
-    count  smallint  NOT NULL,
-    PRIMARY KEY (game, token)
+	game   uuid      NOT NULL  REFERENCES game (id),
+	token  uuid      NOT NULL  REFERENCES token (id),
+	count  smallint  NOT NULL,
+	PRIMARY KEY (game, token)
 );
 
 
 -- each token location on the board
 CREATE TABLE game_token_location
 (
-    game      uuid      NOT NULL  REFERENCES game (id),
-    token     uuid      NOT NULL  REFERENCES token (id),
-    location  smallint  NOT NULL,
-    PRIMARY KEY (game, token, location)
+	game      uuid      NOT NULL  REFERENCES game (id),
+	token     uuid      NOT NULL  REFERENCES token (id),
+	location  smallint  NOT NULL,
+	PRIMARY KEY (game, token, location)
 );
 
 
 -- each token held by a user in a game
 CREATE TABLE game_user_token
 (
-    game      uuid      NOT NULL  REFERENCES game (id),
-    app_user  uuid      NOT NULL  REFERENCES app_user (id),
-    token     uuid      NOT NULL  REFERENCES token (id),
-    count     smallint  NOT NULL,
-    PRIMARY KEY (game, app_user, token)
+	game      uuid      NOT NULL  REFERENCES game (id),
+	app_user  uuid      NOT NULL  REFERENCES app_user (id),
+	token     uuid      NOT NULL  REFERENCES token (id),
+	count     smallint  NOT NULL,
+	PRIMARY KEY (game, app_user, token)
 );
 
 
 -- each character in a game, and the character state
 CREATE TABLE game_character
 (
-    game        uuid      NOT NULL  REFERENCES game (id),
-    character   uuid      NOT NULL  REFERENCES character (id),
+	game        uuid      NOT NULL  REFERENCES game (id),
+	character   uuid      NOT NULL  REFERENCES character (id),
 	location    smallint  NOT NULL,
-    eliminated  boolean   NOT NULL  DEFAULT FALSE,
-    PRIMARY KEY (game, character)
+	eliminated  boolean   NOT NULL  DEFAULT FALSE,
+	PRIMARY KEY (game, character)
 );
 
 
 -- each card in a game
 CREATE TABLE game_card
 (
-    game        uuid         NOT NULL  REFERENCES game (id),
-    id          uuid         NOT NULL  DEFAULT uuid_generate_v4()  UNIQUE,
-    deck_order  smallint,
-    action1     action_type  NOT NULL,
-    character1  uuid                   REFERENCES character (id),
-    token1      uuid                   REFERENCES token (id),
-    action2     action_type  NOT NULL,
-    character2  uuid                   REFERENCES character (id),
-    token2      uuid                   REFERENCES token (id),
-    PRIMARY KEY (game, id),
-    FOREIGN KEY (game, character1) REFERENCES game_character (game, character),
-    FOREIGN KEY (game, token1    ) REFERENCES game_token     (game, token    ),
-    FOREIGN KEY (game, character2) REFERENCES game_character (game, character),
-    FOREIGN KEY (game, token2    ) REFERENCES game_token     (game, token    ),
-    CONSTRAINT chk_sight1 CHECK ((action1 = 'SIGHT') = (character1 IS NOT NULL)),
-    CONSTRAINT chk_specific_token1 CHECK ((action1 = 'SPECIFIC_TOKEN') = (token1 IS NOT NULL)),
-    CONSTRAINT chk_sight2 CHECK ((action2 = 'SIGHT') = (character2 IS NOT NULL)),
-    CONSTRAINT chk_specific_token2 CHECK ((action2 = 'SPECIFIC_TOKEN') = (token2 IS NOT NULL))
+	game        uuid         NOT NULL  REFERENCES game (id),
+	id          uuid         NOT NULL  DEFAULT uuid_generate_v4()  UNIQUE,
+	deck_order  smallint,
+	action1     action_type  NOT NULL,
+	character1  uuid                   REFERENCES character (id),
+	token1      uuid                   REFERENCES token (id),
+	action2     action_type  NOT NULL,
+	character2  uuid                   REFERENCES character (id),
+	token2      uuid                   REFERENCES token (id),
+	PRIMARY KEY (game, id),
+	FOREIGN KEY (game, character1) REFERENCES game_character (game, character),
+	FOREIGN KEY (game, token1    ) REFERENCES game_token     (game, token    ),
+	FOREIGN KEY (game, character2) REFERENCES game_character (game, character),
+	FOREIGN KEY (game, token2    ) REFERENCES game_token     (game, token    ),
+	CONSTRAINT chk_sight1 CHECK ((action1 = 'SIGHT') = (character1 IS NOT NULL)),
+	CONSTRAINT chk_specific_token1 CHECK ((action1 = 'SPECIFIC_TOKEN') = (token1 IS NOT NULL)),
+	CONSTRAINT chk_sight2 CHECK ((action2 = 'SIGHT') = (character2 IS NOT NULL)),
+	CONSTRAINT chk_specific_token2 CHECK ((action2 = 'SPECIFIC_TOKEN') = (token2 IS NOT NULL))
 );
 
 
 -- each card in a user's hand
 CREATE TABLE game_user_card
 (
-    game      uuid  NOT NULL  REFERENCES game (id),
-    card      uuid  NOT NULL  REFERENCES game_card (id),
-    app_user  uuid  NOT NULL  REFERENCES app_user (id),
-    PRIMARY KEY (game, card, app_user),
-    FOREIGN KEY (game, card) REFERENCES game_card (game, id)
+	game      uuid  NOT NULL  REFERENCES game (id),
+	card      uuid  NOT NULL  REFERENCES game_card (id),
+	app_user  uuid  NOT NULL  REFERENCES app_user (id),
+	PRIMARY KEY (game, card, app_user),
+	FOREIGN KEY (game, card) REFERENCES game_card (game, id)
 );
 
 
 -- each guess that a user makes
 CREATE TABLE game_user_guess
 (
-    game         uuid     NOT NULL  REFERENCES game (id),
-    app_user     uuid     NOT NULL  REFERENCES app_user (id),
-    character    uuid     NOT NULL  REFERENCES character (id),
-    target_user  uuid     NOT NULL  REFERENCES app_user (id),
-    guess        boolean  NOT NULL,
-    PRIMARY KEY (game, app_user, character, target_user),
-    FOREIGN KEY (game, app_user) REFERENCES game_user (game, app_user),
-    FOREIGN KEY (game, character) REFERENCES game_character (game, character),
-    FOREIGN KEY (game, target_user) REFERENCES game_user (game, app_user)
+	game         uuid     NOT NULL  REFERENCES game (id),
+	app_user     uuid     NOT NULL  REFERENCES app_user (id),
+	character    uuid     NOT NULL  REFERENCES character (id),
+	target_user  uuid     NOT NULL  REFERENCES app_user (id),
+	guess        boolean  NOT NULL,
+	PRIMARY KEY (game, app_user, character, target_user),
+	FOREIGN KEY (game, app_user) REFERENCES game_user (game, app_user),
+	FOREIGN KEY (game, character) REFERENCES game_character (game, character),
+	FOREIGN KEY (game, target_user) REFERENCES game_user (game, app_user)
 );
 
 
 -- each action that happens in a game
 CREATE TABLE game_log
 (
-    game                 uuid         NOT NULL  REFERENCES game (id),
-    id                   smallint     NOT NULL,
-    time                 timestamptz  NOT NULL  DEFAULT now(),
-    app_user             uuid         NOT NULL  REFERENCES app_user (id),
-    action               action_type  NOT NULL,
-    die1                 uuid                   REFERENCES character (id),
-    die2                 uuid                   REFERENCES character (id),
-    card                 uuid                   REFERENCES game_card (id),
-    character            uuid                   REFERENCES character (id),
-    token                uuid                   REFERENCES token (id),
-    move_from            smallint,
-    sight_result         boolean,
-    sight_user           uuid                   REFERENCES app_user (id),
-    PRIMARY KEY (game, id),
-    FOREIGN KEY (game, card) REFERENCES game_card (game, id),
-    CONSTRAINT chk_character CHECK ((action IN ('MOVE', 'SIGHT', 'ELIMINATE')) = (character IS NOT NULL)),
-    CONSTRAINT chk_move_from CHECK ((action = 'MOVE') = (move_from IS NOT NULL)),
-    CONSTRAINT chk_sight_result CHECK ((action = 'SIGHT') = (sight_result IS NOT NULL)),
-    CONSTRAINT chk_sight_user CHECK ((action = 'SIGHT') = (sight_user IS NOT NULL)),
-    CONSTRAINT chk_token CHECK ((action IN ('PICK_TOKEN', 'SPECIFIC_TOKEN')) = (token IS NOT NULL))
+	game                 uuid         NOT NULL  REFERENCES game (id),
+	id                   smallint     NOT NULL,
+	time                 timestamptz  NOT NULL  DEFAULT now(),
+	app_user             uuid         NOT NULL  REFERENCES app_user (id),
+	action               action_type  NOT NULL,
+	die1                 uuid                   REFERENCES character (id),
+	die2                 uuid                   REFERENCES character (id),
+	card                 uuid                   REFERENCES game_card (id),
+	character            uuid                   REFERENCES character (id),
+	token                uuid                   REFERENCES token (id),
+	move_from            smallint,
+	sight_result         boolean,
+	sight_user           uuid                   REFERENCES app_user (id),
+	PRIMARY KEY (game, id),
+	FOREIGN KEY (game, card) REFERENCES game_card (game, id),
+	CONSTRAINT chk_character CHECK ((action IN ('MOVE', 'SIGHT', 'ELIMINATE')) = (character IS NOT NULL)),
+	CONSTRAINT chk_move_from CHECK ((action = 'MOVE') = (move_from IS NOT NULL)),
+	CONSTRAINT chk_sight_result CHECK ((action = 'SIGHT') = (sight_result IS NOT NULL)),
+	CONSTRAINT chk_sight_user CHECK ((action = 'SIGHT') = (sight_user IS NOT NULL)),
+	CONSTRAINT chk_token CHECK ((action IN ('PICK_TOKEN', 'SPECIFIC_TOKEN')) = (token IS NOT NULL))
 );
 
 
