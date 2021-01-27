@@ -109,6 +109,7 @@ type GameCharacterTable = {
   game: string;
   character: string;
   location: number;
+  eliminated: boolean;
 };
 
 type GameCardTable = {
@@ -413,7 +414,7 @@ const isFinished = async (db: Client, gameId: string) => {
       const [die1, die2] = rollDice(characters);
 
       // insert log record for dice roll
-      await db.query(
+      await db.query<never>(
         `INSERT INTO sleuthers.game_log(game, id, app_user, action, die1, die2)
                                  VALUES($1  , 0 , $2      , 'ROLL', $3  , $4  )`,
         [gameId, userIds[0], die1, die2]
@@ -1125,7 +1126,7 @@ const isFinished = async (db: Client, gameId: string) => {
                   );
                 }
 
-                const { rows: locationRows } = await db.query(
+                const { rows: locationRows } = await db.query<never>(
                   `SELECT 1
                      FROM sleuthers.game_token_location
                      JOIN sleuthers.game_character
@@ -1308,14 +1309,14 @@ const isFinished = async (db: Client, gameId: string) => {
             );
 
             // insert log record for dice roll
-            await db.query(
+            await db.query<never>(
               `INSERT INTO sleuthers.game_log(game, id, app_user, action, die1, die2)
                                        VALUES($1  , $2, $3      , 'ROLL', $4  , $5  )`,
               [gameId, nextLogId + 1, nextUserId, die1, die2]
             );
 
             // discard
-            await db.query(
+            await db.query<never>(
               `DELETE FROM sleuthers.game_user_card
                 WHERE game = $1
                   AND card = $2
@@ -1338,7 +1339,7 @@ const isFinished = async (db: Client, gameId: string) => {
               const [{ id: cardId }] = nextCards;
 
               // remove card from deck
-              await db.query(
+              await db.query<never>(
                 `UPDATE sleuthers.game_card
                     SET deck_order = NULL
                   WHERE game = $1
@@ -1347,7 +1348,7 @@ const isFinished = async (db: Client, gameId: string) => {
               );
 
               // add card to hand
-              await db.query(
+              await db.query<never>(
                 `INSERT INTO sleuthers.game_user_card(game, card, app_user)
                                                VALUES($1  , $2  , $3      )`,
                 [gameId, cardId, authUser.id]
@@ -1409,7 +1410,7 @@ const isFinished = async (db: Client, gameId: string) => {
         throw new ErrorResponse(400, `Duplicate game ${gameId}`);
       }
 
-      await db.query(
+      await db.query<never>(
         `INSERT INTO sleuthers.game_user_guess(game, app_user, character, target_user, guess)
                                         VALUES($1  , $2      , $3       , $4         , $5   )
              ON CONFLICT (game, app_user, character, target_user) DO UPDATE
@@ -1418,7 +1419,7 @@ const isFinished = async (db: Client, gameId: string) => {
       );
 
       if (await isFinished(db, gameId)) {
-        await db.query(
+        await db.query<never>(
           `UPDATE sleuthers.game
               SET stage = 'FINISHED'
             WHERE id = $1`,
@@ -1465,7 +1466,7 @@ const isFinished = async (db: Client, gameId: string) => {
         throw new ErrorResponse(400, `Duplicate game ${gameId}`);
       }
 
-      await db.query(
+      await db.query<never>(
         `DELETE FROM sleuthers.game_user_guess
           WHERE game = $1
             AND app_user = $2
@@ -1475,7 +1476,7 @@ const isFinished = async (db: Client, gameId: string) => {
       );
 
       if (await isFinished(db, gameId)) {
-        await db.query(
+        await db.query<never>(
           `UPDATE sleuthers.game
               SET stage = 'FINISHED'
             WHERE id = $1`,
