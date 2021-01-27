@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "strict": true,
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": { "*": ["node_modules/*"] },
+    "jsx": "react",
+    "target": "ES5"
+  },
+  "include": ["src/**/*"]
+}

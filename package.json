@@ -1,0 +1,41 @@
+{
+  "name": "sleuthers-api",
+  "version": "1.0.0",
+  "description": "Express.js API for the Sleuthers game",
+  "main": "dist/index.js",
+  "scripts": {
+    "prestart": "tsc",
+    "start": "node .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jbrower2/sleuthers-api.git"
+  },
+  "author": "Jeff Brower",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jbrower2/sleuthers-api/issues"
+  },
+  "homepage": "https://github.com/jbrower2/sleuthers-api#readme",
+  "dependencies": {
+    "bcrypt": "^5.0.0",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "passport": "^0.4.1",
+    "passport-http": "^0.3.0",
+    "pg": "^8.5.1",
+    "typeorm": "^0.2.30"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^3.0.0",
+    "@types/body-parser": "^1.19.0",
+    "@types/cors": "^2.8.9",
+    "@types/express": "^4.17.11",
+    "@types/passport": "^1.0.5",
+    "@types/passport-http": "^0.3.8",
+    "@types/pg": "^7.14.9",
+    "typescript": "^4.1.3"
+  }
+}
