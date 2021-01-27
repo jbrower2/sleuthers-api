@@ -10,7 +10,7 @@ import { Client, ClientConfig } from "pg";
 const port = 3000;
 
 class ErrorResponse {
-	constructor(public status: number, public message: string) {}
+	constructor(public status: number, public message?: string) {}
 }
 
 type GameIdPathParam = { gameId: string };
@@ -154,19 +154,17 @@ type GameLogTable = {
 	sight_user?: string;
 };
 
-const handleResponse = (f: (req: Request) => Promise<any | unknown>) => async (
-	req: Request,
-	res: Response
-) => {
+const handleResponse = (
+	f: (req: Request, res: Response) => Promise<any | undefined>
+) => async (req: Request, res: Response) => {
 	try {
-		res.send(await f(req));
+		return res.send(await f(req, res));
 	} catch (e) {
 		console.error(e);
 		if (e instanceof ErrorResponse) {
-			res.status(e.status).send(e.message);
-		} else {
-			res.status(500).send(e);
+			return res.status(e.status).send(e.message);
 		}
+		return res.status(500).send(e);
 	}
 };
 
@@ -546,7 +544,7 @@ const isFinished = async (db: Client, gameId: string) => {
 	app.get<GameIdPathParam>(
 		"/game/:gameId",
 		basicAuth,
-		handleResponse(async (req) => {
+		handleResponse(async (req, res) => {
 			const { gameId } = req.params;
 			const authUser = req.user as AppUserTable;
 
@@ -582,6 +580,21 @@ const isFinished = async (db: Client, gameId: string) => {
 
 			if (!users.find((user) => user.id === authUser.id)) {
 				throw new ErrorResponse(404, `Game ${gameId} not found`);
+			}
+
+			const {
+				rows: [{ max_time: lastModified }],
+			} = await db.query<{ max_time: Date }>(
+				"SELECT MAX(time) max_time FROM sleuthers.game_log WHERE game = $1",
+				[gameId]
+			);
+
+			const ifModifiedSince = req.header("if-modified-since");
+			if (ifModifiedSince) {
+				const ifModifiedSinceDate = new Date(ifModifiedSince);
+				if (lastModified.getTime() <= ifModifiedSinceDate.getTime()) {
+					throw new ErrorResponse(304);
+				}
 			}
 
 			const { rows: tokens } = await db.query<GameTokenTable & TokenTable>(
@@ -662,6 +675,8 @@ const isFinished = async (db: Client, gameId: string) => {
 			const curPlayerOrder = users.find((user) => user.id === lastPlayerId)!
 				.game_order;
 			const curPlayer = users[curPlayerOrder];
+
+			res.header("Last-Modified", lastModified.toUTCString());
 
 			return {
 				name: game.name,
