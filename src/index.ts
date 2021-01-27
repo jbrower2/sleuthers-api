@@ -268,6 +268,38 @@ const isFinished = async (db: Client, gameId: string) => {
 	app.use(bodyParser.json({ type: "application/json" }));
 
 	////////////////////////////////////////////////////////////////
+	// create a user
+	////////////////////////////////////////////////////////////////
+	app.put(
+		"/user",
+		handleResponse(async (req) => {
+			const { username, password } = req.body;
+			if (!username) {
+				throw new ErrorResponse(400, "`username` is required");
+			}
+			if (!password) {
+				throw new ErrorResponse(400, "`password` is required");
+			}
+
+			const { rows: existingUsers } = await db.query<never>(
+				`SELECT *
+				   FROM sleuthers.app_user
+				  WHERE username = $1`,
+				[username]
+			);
+			if (existingUsers.length) {
+				throw new ErrorResponse(400, `Username ${username} is already in use`);
+			}
+
+			await db.query<never>(
+				`INSERT INTO sleuthers.app_user(username, password_hash)
+				                         VALUES($1      , $2           )`,
+				[username, bcrypt.hashSync(password, 10)]
+			);
+		})
+	);
+
+	////////////////////////////////////////////////////////////////
 	// get all of a user's games
 	////////////////////////////////////////////////////////////////
 	// TODO implement caching with http If-Modified-Since
