@@ -13,7 +13,8 @@ GRANT INSERT, SELECT, UPDATE, DELETE ON TABLES TO "sleuthers-api";
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-SET TIMEZONE = 'UTC';
+SET client_encoding = 'UTF8';
+SET timezone = 'UTC';
 
 
 -- common function that sets the 'modified' field upon update
